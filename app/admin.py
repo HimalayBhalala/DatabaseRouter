@@ -10,7 +10,7 @@ class BrandDataAdmin(admin.ModelAdmin):
 
 @admin.register(Users)
 class UsersAdmin(admin.ModelAdmin):
-    list_display = ('email', 'firstname', 'surname','is_active', 'is_staff', 'created_at')
+    list_display = ('email', 'firstname', 'surname','is_active', 'is_staff', 'created_at', "brand_name")
     list_filter = ('is_active', 'is_staff', 'created_at')
     search_fields = ('email', 'firstname', 'surname')
     readonly_fields = ('created_at', 'updated_at', 'password')
@@ -20,8 +20,8 @@ class UsersAdmin(admin.ModelAdmin):
 
 @admin.register(Tasks)
 class TasksAdmin(admin.ModelAdmin):
-    list_display = ('saved_search', 'userid','min_price', 'max_price', 'active', 'created_at')
-    list_filter = ('active', 'created_at')
+    list_display = ('saved_search', 'userid','min_price', 'max_price', 'created_at')
+    list_filter = ('created_at',)
     search_fields = ('saved_search', 'userid__email', 'postcode')
     readonly_fields = ('created_at', 'updated_at')
     

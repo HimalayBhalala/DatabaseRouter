@@ -65,6 +65,7 @@ class AdminJWTAuthorization(permissions.BasePermission):
                 return False
             
             request.admin = admin
+            request.brand_name = brand_name
             
             return True
             

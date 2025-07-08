@@ -4,10 +4,11 @@ from app.models import *
 import bcrypt
 
 class BrandAdminSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
     class Meta:
         model = BrandAdmin
         fields = ('email', 'firstname', 'surname', 'password')
-        write_only_fields = ('password')
 
     def validate(self, attrs):
         brand_name = self.context.get('brand_name')
@@ -38,3 +39,10 @@ class BrandAdminSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         admin = BrandAdmin.objects.create(**validated_data)
         return admin
+    
+
+class AdminUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Users
+        fields = "__all__"
+        exclude = ("password",)

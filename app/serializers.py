@@ -10,7 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Users
-        fields = ('userid', 'email', 'firstname', 'surname', 'password', 'brand_name', 'created_at', 'updated_at')
+        fields = ('userid', 'email', 'firstname', 'surname', 'password', 'brand_name', 'number_task', 'valid_user', 'created_at', 'updated_at')
         read_only_fields = ('userid', 'created_at', 'updated_at', 'brand_name')
 
     def validate(self, attrs):
@@ -49,14 +49,11 @@ class TaskSerializer(serializers.ModelSerializer):
     """
     Serializer for Task model
     """
-    user_email = serializers.EmailField(source='userid.email', read_only=True)
-    
     class Meta:
         model = Tasks
         fields = (
-            'id', 'userid', 'user_email', 'saved_search', 
-            'min_price', 'max_price', 'postcode', 'radius',
-            'active', 'created_at', 'updated_at'
+            'id', 'userid', 'saved_search', 
+            'min_price', 'max_price', 'postcode', 'radius', 'created_at', 'updated_at'
         )
         read_only_fields = ('id', 'created_at', 'updated_at')
 

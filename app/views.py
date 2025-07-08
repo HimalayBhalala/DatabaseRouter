@@ -53,28 +53,19 @@ class UserLoginView(APIView):
     def post(self, request):
         """
         Login user and return JWT tokens.
-        
-        Request body format:
-        {
-            "email": "user@example.com",
-            "password": "secure_password"
-        }
         """
         try:
             email = request.data.get('email')
             password = request.data.get('password')
 
-            # Validate required fields
             if not all([email, password]):
                 return Response({
                     'status': 'error',
                     'message': 'Both email and password are required'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            # Get current brand context from middleware
             brand_name = get_brand_context()
 
-            # Find user in brand-specific database
             try:
                 user = Users.objects.using(brand_name).get(
                     email=email, 
@@ -82,9 +73,7 @@ class UserLoginView(APIView):
                 )
                 print(f"User found in {brand_name}: {user.email}")
                 
-                # Check password
                 if user.check_password(password):
-                    # Generate tokens
                     refresh = RefreshToken.for_user(user)
                     
                     return Response({
@@ -130,21 +119,29 @@ class CreateTaskAPIView(APIView):
     def post(self, request):
         """
         Create a new task for the authenticated user.
-        
-        Request body format:
-        {
-            "saved_search": "string",
-            "min_price": float,
-            "max_price": float,
-            "postcode": "string",
-            "radius": integer,
-            "active": boolean
-        }
         """
         try:
-            # Add the user to the data
             data = request.data.copy()
-            data['userid'] = request.user.userid
+            userid = request.user.userid
+
+            branch_name = get_current_brand()
+
+            user = Users.objects.using(branch_name).filter(userid=userid).first()
+
+            if not user.valid_user:
+                return Response({
+                    "status":"success",
+                    "message": "You have not able to create a Task because invalid user"
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            tasks = Tasks.objects.using(branch_name).filter(userid=userid)
+
+            if tasks.count() >= user.number_task:
+                return Response({
+                    "status": "success",
+                    "message": "You number of task reached so please contact us a admin for increase a task create limit."
+                })
+            data['userid'] = userid
 
             serializer = TaskSerializer(data=data)
             if serializer.is_valid():
@@ -173,17 +170,6 @@ class UpdateTaskAPIView(APIView):
     def put(self, request):
         """
         Update an existing task.
-        
-        Request body format:
-        {
-            "id": integer,
-            "saved_search": "string",
-            "min_price": float,
-            "max_price": float,
-            "postcode": "string",
-            "radius": integer,
-            "active": boolean
-        }
         """
         try:
             task_id = request.data.get('id')
@@ -193,7 +179,6 @@ class UpdateTaskAPIView(APIView):
                     'message': 'Task ID is required'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            # Get current brand context
             brand_name = get_current_brand()
 
             try:
@@ -231,11 +216,6 @@ class DeleteTaskAPIView(APIView):
     def delete(self, request):
         """
         Delete a task.
-        
-        Request body format:
-        {
-            "id": integer
-        }
         """
         try:
             task_id = request.data.get('id')
@@ -245,7 +225,6 @@ class DeleteTaskAPIView(APIView):
                     'message': 'Task ID is required'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            # Get current brand context
             brand_name = get_current_brand()
             try:
                 task = Tasks.objects.using(brand_name).get(id=task_id, userid=request.user.userid)
@@ -273,28 +252,13 @@ class UserTasksListView(APIView):
     def get(self, request):
         """
         Get all tasks for the authenticated user.
-        
-        Query parameters:
-        - active: true/false (optional, filter by active status)
-        - page: integer (optional, for pagination)
-        - limit: integer (optional, number of tasks per page, default 10)
         """
         try:
-            # Get current brand context from middleware
             brand_name = get_current_brand()
             
-            # Base query - get tasks for current user and brand
             tasks_query = Tasks.objects.using(brand_name).filter(
                 userid=request.user.userid
             )
-            
-            # Filter by active status if provided
-            active_filter = request.GET.get('active')
-            if active_filter is not None:
-                if active_filter.lower() == 'true':
-                    tasks_query = tasks_query.filter(active=True)
-                elif active_filter.lower() == 'false':
-                    tasks_query = tasks_query.filter(active=False)
             
             # Order by creation date (newest first)
             tasks_query = tasks_query.order_by('-created_at')

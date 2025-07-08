@@ -10,8 +10,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 # Include From the Project Folder
 from .models import *
 from .serializers import *
-from app.models import Brand
+from app.models import Brand, Users
 from .jwt_auth import AdminJWTAuthorization
+from app.serializers import UserSerializer
 
 import bcrypt
 
@@ -129,7 +130,6 @@ class AdminLoginView(APIView):
                         "message": "You do not have an active admin account, so you are not able to access it."
                     }, status=status.HTTP_400_BAD_REQUEST)
                 
-                # Check password
                 password1 = admin.password
                 
                 #check password is valid or not 
@@ -177,13 +177,31 @@ class AdminUsersView(APIView):
     permission_classes = [AdminJWTAuthorization]
     
     def get(self, request):
-        return Response({
-            "success": True,
-        })
+    
+        try:
+            brand_name = request.brand_name
+
+            users = Users.objects.using(brand_name).filter(brand_name=brand_name)
+
+            serializer_data = UserSerializer(users, many=True)
+            return Response({
+                "status":"success",
+                "data":serializer_data.data
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "status":"error",
+                "message": f"Error is:{str(e)}"
+            })
 
 
 class UpdateUserView(APIView):
-    pass
+    permission_classes = [AdminJWTAuthorization]
+
+    def put(self, request, userid):
+        brand_name = request.brand_name 
+
+        users = Users.objects.using(brand_name).filter(brand_name=brand_name, userid=userid)
 
 
 class ContactUsView(APIView):

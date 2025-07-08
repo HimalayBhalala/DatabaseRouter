@@ -37,7 +37,7 @@ class BrandAdmin(models.Model):
     """Include a Brand wise admin"""
     firstname = models.CharField(max_length=50)
     surname = models.CharField(max_length=50)
-    email = models.CharField(max_length=50, unique=True)
+    email = models.CharField(max_length=50, unique=False)
     password = models.CharField(max_length=255)
     brand_name = models.CharField(max_length=100, db_index=True)
     is_active = models.BooleanField(default=False)
@@ -73,10 +73,12 @@ class Users(AbstractBaseUser, PermissionsMixin):
     email = models.CharField(max_length=50, unique=True)
     password = models.CharField(max_length=255)
     brand_name = models.CharField(max_length=100, db_index=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    number_task = models.IntegerField(default=0)
+    valid_user = models.BooleanField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     objects = UserManager()
 
@@ -102,7 +104,6 @@ class Tasks(models.Model):
     max_price = models.FloatField(blank=True, null=True)
     postcode = models.CharField(max_length=100, blank=True, null=True)
     radius = models.IntegerField(blank=True, null=True)
-    active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
