@@ -180,14 +180,14 @@ class AdminUsersView(APIView):
     
         try:
             brand_name = request.brand_name
-
             users = Users.objects.using(brand_name).filter(brand_name=brand_name)
 
-            serializer_data = UserSerializer(users, many=True)
+            serializer_data = AdminUserSerializer(users, many=True)
             return Response({
                 "status":"success",
                 "data":serializer_data.data
             }, status=status.HTTP_200_OK)
+            
         except Exception as e:
             return Response({
                 "status":"error",
@@ -199,9 +199,33 @@ class UpdateUserView(APIView):
     permission_classes = [AdminJWTAuthorization]
 
     def put(self, request, userid):
-        brand_name = request.brand_name 
+        try:
+            brand_name = request.brand_name
 
-        users = Users.objects.using(brand_name).filter(brand_name=brand_name, userid=userid)
+            print("Brand name is", brand_name)
+            user = Users.objects.using(brand_name).filter(userid=userid).first()
+
+            serializer_data = AdminUserSerializer(user, data=request.data, context={'brand_name':brand_name}, partial=True)
+            
+            serializer_data.is_valid(raise_exception=True)
+
+            # Update the user instance with validated data and save to correct database
+            for field, value in request.data.items():
+                if hasattr(user, field) and field not in ['userid', 'created_at', 'updated_at']:
+                    setattr(user, field, value)
+            user.save(using=brand_name)
+
+            return Response({
+                "status":"success",
+                "data":serializer_data.data
+            }, status=status.HTTP_200_OK)
+                
+        except Exception as e:
+            return Response({
+                "status":"error",
+                "message": f"Error is:{str(e)}"
+            })
+
 
 
 class ContactUsView(APIView):

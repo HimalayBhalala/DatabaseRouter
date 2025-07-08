@@ -44,5 +44,4 @@ class BrandAdminSerializer(serializers.ModelSerializer):
 class AdminUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
-        fields = "__all__"
-        exclude = ("password",)
+        exclude = ("password", "groups", "user_permissions", "is_staff")

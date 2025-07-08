@@ -56,18 +56,29 @@ class AdminJWTAuthorization(permissions.BasePermission):
                 return False
             
             admin_id = decoded_token['user_id']
-            brand_name = decoded_token['brand_name']
+            brand_name = decoded_token.get('brand_name')  # Use .get() to avoid KeyError
+            
+            if not brand_name:
+                print("ERROR: Brand name not found in token")
+                return False
+            
+            print(f"DEBUG: Extracted brand_name from token: {brand_name}")
             
             # Get the admin from database
             admin = BrandAdmin.objects.filter(id=admin_id, brand_name=brand_name, is_active=True).first()
             
             if not admin:
+                print(f"ERROR: Admin not found with id={admin_id}, brand_name={brand_name}")
                 return False
             
+            # IMPORTANT: Set these on the request for use in views
             request.admin = admin
             request.brand_name = brand_name
+            request.user = admin  # Set user for compatibility
             
+            print(f"DEBUG: Successfully authenticated admin for brand: {brand_name}")
             return True
             
         except Exception as e:
+            print(f"ERROR in has_permission: {str(e)}")
             return False
