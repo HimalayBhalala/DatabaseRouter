@@ -25,6 +25,5 @@ urlpatterns = [
     path('api/admin/', include('admin_panel.urls'))
 ]
 
-# Serve static files during development
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
