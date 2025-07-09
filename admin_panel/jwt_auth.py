@@ -1,10 +1,22 @@
+# Include a Django packeage
 from django.conf import settings
+
+# Include DRF Packeges
 from rest_framework import permissions
 from rest_framework.exceptions import AuthenticationFailed
+
+# Include using a Project Directory
 from app.models import BrandAdmin
+
+# Include third-party packages
 import jwt
 
+
 class AdminJWTAuthorization(permissions.BasePermission):
+
+    """
+        Admin Based JwtAuthentication
+    """
     
     @staticmethod
     def decode_jwt_token(token):
@@ -56,29 +68,21 @@ class AdminJWTAuthorization(permissions.BasePermission):
                 return False
             
             admin_id = decoded_token['user_id']
-            brand_name = decoded_token.get('brand_name')  # Use .get() to avoid KeyError
+            brand_name = decoded_token.get('brand_name') 
             
             if not brand_name:
-                print("ERROR: Brand name not found in token")
                 return False
-            
-            print(f"DEBUG: Extracted brand_name from token: {brand_name}")
-            
-            # Get the admin from database
+                        
             admin = BrandAdmin.objects.filter(id=admin_id, brand_name=brand_name, is_active=True).first()
             
             if not admin:
-                print(f"ERROR: Admin not found with id={admin_id}, brand_name={brand_name}")
                 return False
             
-            # IMPORTANT: Set these on the request for use in views
             request.admin = admin
             request.brand_name = brand_name
-            request.user = admin  # Set user for compatibility
+            request.admin_name = admin.firstname
             
-            print(f"DEBUG: Successfully authenticated admin for brand: {brand_name}")
             return True
             
         except Exception as e:
-            print(f"ERROR in has_permission: {str(e)}")
             return False

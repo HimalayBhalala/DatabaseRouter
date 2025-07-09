@@ -96,7 +96,7 @@ DATABASES = {
     },
     
     # Brand 1 Database
-    'brand1': {
+    'vehicle': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.environ.get('BRAND1_DB_NAME'),
         'USER': os.environ.get('BRAND1_DB_USER'),
@@ -106,7 +106,7 @@ DATABASES = {
     },
     
     # Brand 2 Database
-    'brand2': {
+    'furniture': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.environ.get('BRAND2_DB_NAME'),
         'USER': os.environ.get('BRAND2_DB_USER'),

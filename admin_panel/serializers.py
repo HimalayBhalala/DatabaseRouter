@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from app.models import *
+from .models import *
 
 import bcrypt
 
@@ -45,3 +46,33 @@ class AdminUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
         exclude = ("password", "groups", "user_permissions", "is_staff")
+
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save(using=self.context.get('brand_name'))
+        return instance
+    
+
+class AdminContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactUs
+        fields = "__all__"
+        read_only_fields = ("userid", "firstname", "surname", "email")
+
+    def update(self, instance, validated_data):
+        brand_name = self.context.get('brand_name')
+
+        validated_data['approved_by'] = self.context.get('admin_name')
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save(using=self.context.get('brand_name'))
+        
+        user = Users.objects.using(brand_name).filter(userid=instance.userid, brand_name=brand_name).first()
+
+        if user:
+            user.number_task = instance.request_for_task
+            user.save(using=brand_name, update_fields=['number_task', 'valid_user', 'updated_at'])
+        
+        return instance

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Users, Tasks, Brand
+from .models import Users, Tasks, Brand, ContactUs
 from .middleware import get_current_brand
 
 class UserSerializer(serializers.ModelSerializer):
@@ -58,7 +58,7 @@ class TaskSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'created_at', 'updated_at')
 
     def create(self, validated_data):
-        return super().create(validated_data)
+        return Tasks.objects.create(**validated_data)
 
     def validate(self, data):
         """
@@ -73,3 +73,49 @@ class TaskSerializer(serializers.ModelSerializer):
             })
         
         return data
+    
+
+class ContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactUs
+        fields = "__all__"
+        read_only_fields = ("userid", "firstname", "surname", "email")
+
+
+    def validate(self, attrs):
+        userid = self.context.get('userid')
+        brand_name = self.context.get('brand_name')
+        request_for_task = attrs.get('request_for_task')
+
+        if not request_for_task or request_for_task == 0 :
+            raise ValueError("Please enter a number of tasks you want to create")
+
+        user = Users.objects.using(brand_name).filter(userid=userid, brand_name=brand_name).first()
+
+        if not user:
+            raise ValueError("User not found")
+        
+        if not user.is_active:
+            raise ValueError("Your account is deactivated so not able to send a contact us form.")
+        
+        contacts = ContactUs.objects.using(brand_name).filter(userid=userid)
+
+        print("Total Form count:", contacts.count())
+        
+        if contacts.exists():
+            latest_contact = contacts.latest()
+            
+            if latest_contact.status == '0':
+                raise ValueError("You have already submitted the Contact Us form, and it is currently pending approval by the admin. Please wait for it to be approved before submitting it again.")
+        
+        attrs['total_count'] = contacts.count() + 1
+        attrs['firstname'] = user.firstname
+        attrs['surname'] = user.surname
+        attrs['email'] = user.email
+        attrs['userid'] = userid
+
+        return attrs
+    
+    def create(self, validated_data):
+        brand_name = self.context.get('brand_name')
+        return ContactUs.objects.using(brand_name).create(**validated_data)

@@ -44,6 +44,9 @@ class BrandAdmin(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        db_table = "brand_admin"
+
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -110,3 +113,31 @@ class Tasks(models.Model):
     class Meta:
         db_table = 'tasks'
         unique_together = [['userid', 'saved_search']]
+
+
+ADMIN_APPROVEL = [
+    (0, "Pending"),
+    (1, "Approved")
+]
+
+
+class ContactUs(models.Model):
+    userid = models.IntegerField()
+    firstname = models.CharField(max_length=50)
+    surname = models.CharField(max_length=50)
+    email = models.CharField(max_length=50, unique=False)
+    total_count = models.IntegerField(default=1)
+    request_for_task = models.IntegerField(blank=True, null=True) 
+    description = models.TextField(null=True, blank=True)
+    approved_by = models.CharField(max_length=50, null=True, blank=True)
+    status = models.CharField(max_length=2, choices=ADMIN_APPROVEL, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "contanct_us"
+        get_latest_by = 'created_at'
+
+    def __str__(self):
+        return f"UserId is: {self.userid} And Create Task is Request is: {self.request_for_task}"
+    

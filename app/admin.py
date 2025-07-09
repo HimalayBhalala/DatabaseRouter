@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Brand, Users, Tasks, BrandAdmin
+from .models import Brand, Users, Tasks, BrandAdmin, ContactUs
 
 @admin.register(Brand)
 class BrandDataAdmin(admin.ModelAdmin):
@@ -35,6 +35,18 @@ class BrandUserAdmin(admin.ModelAdmin):
     list_filter = ('is_active', 'created_at')
     search_fields = ('email', 'firstname', 'surname')
     readonly_fields = ('created_at', 'updated_at', 'password')
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).using('default')
+
+
+@admin.register(ContactUs)
+class ContactUsAdmin(admin.ModelAdmin):
+    list_display = ('userid', 'firstname', 'surname','email',
+    'total_count', 'request_for_task', 'approved_by','created_at')
+    list_filter = ('approved_by', 'created_at')
+    search_fields = ('email', 'firstname', 'surname')
+    readonly_fields = ('created_at', 'updated_at')
     
     def get_queryset(self, request):
         return super().get_queryset(request).using('default')

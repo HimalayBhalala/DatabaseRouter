@@ -1,4 +1,7 @@
+# Include Django Packages
 from django.urls import path
+
+# Include From the Project Directory
 from . import views
 
 urlpatterns = [
@@ -11,4 +14,6 @@ urlpatterns = [
     path('update-task', views.UpdateTaskAPIView.as_view(), name='update-task'),
     path('delete-task', views.DeleteTaskAPIView.as_view(), name='delete-task'),
     path('my-tasks', views.UserTasksListView.as_view(), name='user-tasks'),
+
+    path("user/contact", views.ContactUsView.as_view(), name="contact_admin")
 ]
