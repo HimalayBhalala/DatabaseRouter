@@ -73,6 +73,6 @@ class AdminContactSerializer(serializers.ModelSerializer):
 
         if user:
             user.number_task = instance.request_for_task
-            user.save(using=brand_name, update_fields=['number_task', 'valid_user', 'updated_at'])
+            user.save(using=brand_name, update_fields=['number_task', 'updated_at'])
         
         return instance

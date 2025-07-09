@@ -12,20 +12,24 @@ from .utils import APIValidateView
 
 
 class UserRegistrationView(APIValidateView):
+    
+    """
+    Register a new user.
+    """
+
     def post(self, request):
-        """
-        Register a new user.
-        """
         brand_name = getattr(request, 'brand_name', 'default')
-                    
+
         serializer_data = UserSerializer(data=request.data, context={'brand_name': brand_name})
 
         serializer_data.is_valid(raise_exception=True)
 
         user = serializer_data.save()
-        # Generate tokens
+
+        # Generate the access_token and refresh_token
         refresh = RefreshToken.for_user(user)
 
+        # Include a brand_name inside a token so easily get it while decode the token
         refresh['brand_name'] = brand_name
         refresh.access_token['brand_name'] = brand_name
         
@@ -50,72 +54,74 @@ class UserRegistrationView(APIValidateView):
 
 
 class UserLoginView(APIValidateView):
+    """
+    Login user and return JWT tokens.
+    """
+
     def post(self, request):
-        """
-        Login user and return JWT tokens.
-        """
+    
         email = request.data.get('email')
         password = request.data.get('password')
 
+        # Check email and password included
         if not all([email, password]):
             return Response({
                 'status': 'error',
                 'message': 'Both email and password are required'
             }, status=status.HTTP_400_BAD_REQUEST)
 
+        # Get a latest brand_name from the middleware
         brand_name = get_brand_context()
 
-        try:
-            user = Users.objects.using(brand_name).get(
-                email=email, 
-                brand_name=brand_name
-            )
-            
-            if user.check_password(password):
-                refresh = RefreshToken.for_user(user)
-                
-                refresh['brand_name'] = brand_name
-                refresh.access_token['brand_name'] = brand_name
-                
-                return Response({
-                    'status': 'success',
-                    'message': 'Login successful',
-                    'data': {
-                        'user': {
-                            'userid': user.userid,
-                            'email': user.email,
-                            'firstname': user.firstname,
-                            'surname': user.surname,
-                            'brand_name': user.brand_name,
-                            'database_used': brand_name
-                        },
-                        'tokens': {
-                            'refresh': str(refresh),
-                            'access': str(refresh.access_token)
-                        }
-                    }
-                }, status=status.HTTP_200_OK)
-            else:
-                return Response({
-                    'status': 'error',
-                    'message': 'Invalid credentials'
-                }, status=status.HTTP_401_UNAUTHORIZED)
-                
-        except Users.DoesNotExist:
-            print(f"User not found in {brand_name} for brand {brand_name}")
+        user = Users.objects.using(brand_name).get(
+            email=email, 
+            brand_name=brand_name
+        )
+
+        if not user:
             return Response({
                 'status': 'error',
-                'message': 'Invalid credentials'
+                'message': 'User not found please register first.'
             }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        if user.check_password(password):
+            refresh = RefreshToken.for_user(user)
+            
+            refresh['brand_name'] = brand_name
+            refresh.access_token['brand_name'] = brand_name
+            
+            return Response({
+                'status': 'success',
+                'message': 'Login successful',
+                'data': {
+                    'user': {
+                        'userid': user.userid,
+                        'email': user.email,
+                        'firstname': user.firstname,
+                        'surname': user.surname,
+                        'brand_name': user.brand_name,
+                        'database_used': brand_name
+                    },
+                    'tokens': {
+                        'refresh': str(refresh),
+                        'access': str(refresh.access_token)
+                    }
+                }
+            }, status=status.HTTP_200_OK)
+
+        return Response({
+            'status': 'error',
+            'message': 'Enter a valid password'
+        }, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class CreateTaskAPIView(APIValidateView):
+    """
+    Create a new task for the authenticated user.
+    """
     permission_classes = [JWTAuthorization]
 
     def post(self, request):
-        """
-        Create a new task for the authenticated user.
-        """
         data = request.data.copy()
         userid = request.user.userid
 
@@ -151,12 +157,13 @@ class CreateTaskAPIView(APIValidateView):
 
 
 class UpdateTaskAPIView(APIValidateView):
+    """
+    Update an existing task.
+    """
     permission_classes = [JWTAuthorization]
 
     def put(self, request):
-        """
-        Update an existing task.
-        """
+        
         task_id = request.data.get('id')
         if not task_id:
             return Response({
@@ -188,12 +195,12 @@ class UpdateTaskAPIView(APIValidateView):
 
 
 class DeleteTaskAPIView(APIValidateView):
+    """
+    Delete a task.
+    """
     permission_classes = [JWTAuthorization]
 
     def delete(self, request):
-        """
-        Delete a task.
-        """
         task_id = request.data.get('id')
         if not task_id:
             return Response({
@@ -219,12 +226,12 @@ class DeleteTaskAPIView(APIValidateView):
 
 
 class UserTasksListView(APIValidateView):
+    """
+    Get all tasks for the authenticated user.
+    """
     permission_classes = [JWTAuthorization]
 
     def get(self, request):
-        """
-        Get all tasks for the authenticated user.
-        """
         brand_name = request.brand_name
         
         tasks_query = Tasks.objects.using(brand_name).filter(

@@ -19,7 +19,9 @@ import bcrypt
 
 # Create your views here.
 class ListOfBrandView(APIValidateView):
+    
     def get(self,request):
+
         brand_list = {}
         brands = Brand.objects.all()
 
@@ -36,10 +38,11 @@ class ListOfBrandView(APIValidateView):
 
 
 class UserRegistrationView(APIValidateView):
+    """
+    Register a new user. 
+    """
+
     def post(self, request, brand_id):
-        """
-        Register a new user. 
-        """
         brand = Brand.objects.filter(brand_id=brand_id).first()
 
         if not brand:
@@ -64,10 +67,11 @@ class UserRegistrationView(APIValidateView):
 
 
 class AdminLoginView(APIValidateView):
+    """
+    Login user and return JWT tokens
+    """
+
     def post(self, request, brand_id):
-        """
-        Login user and return JWT tokens
-        """
 
         email = request.data.get('email')
         password = request.data.get('password')
@@ -91,61 +95,55 @@ class AdminLoginView(APIValidateView):
 
         db_alias = 'default'
 
-        try:
-            admin = BrandAdmin.objects.using(db_alias).get(
-                email=email, 
-                brand_name=brand_name
-            )
+        admin = BrandAdmin.objects.using(db_alias).get(
+            email=email, 
+            brand_name=brand_name
+        )
 
-            if not admin:
-                return Response({
-                    "status": "error",
-                    "message": "You cannot access the admin panel because you are not an admin."
-                }, status=status.HTTP_400_BAD_REQUEST)
-            
-            if not admin.is_active:
-                return Response({
-                    "status": "error",
-                    "message": "You do not have an active admin account, so you are not able to access it."
-                }, status=status.HTTP_400_BAD_REQUEST)
-            
-            password1 = admin.password
-            
-            check_pw = bcrypt.checkpw(password.encode(), password1.encode())
-            
-            if check_pw is True:
+        if not admin:
+            return Response({
+                "status": "error",
+                "message": "You cannot access the admin panel because you are not an admin."
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not admin.is_active:
+            return Response({
+                "status": "error",
+                "message": "You do not have an active admin account, so you are not able to access it."
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        password1 = admin.password
+        
+        check_pw = bcrypt.checkpw(password.encode(), password1.encode())
+        
+        if check_pw is True:
 
-                refresh = RefreshToken.for_user(admin)
-                
-                refresh['brand_name'] = brand_name
-                refresh.access_token['brand_name'] = brand_name
+            refresh = RefreshToken.for_user(admin)
+            
+            refresh['brand_name'] = brand_name
+            refresh.access_token['brand_name'] = brand_name
 
-                serializer_data = BrandAdminSerializer(admin)
-                return Response({
-                    'status': 'success',
-                    'message': 'Login successful',
-                    'data': {
-                        'user': serializer_data.data,
-                        'tokens': {
-                            'refresh': str(refresh),
-                            'access': str(refresh.access_token)
-                        }
+            serializer_data = BrandAdminSerializer(admin)
+            return Response({
+                'status': 'success',
+                'message': 'Login successful',
+                'data': {
+                    'user': serializer_data.data,
+                    'tokens': {
+                        'refresh': str(refresh),
+                        'access': str(refresh.access_token)
                     }
-                }, status=status.HTTP_200_OK)
-            else:
-                return Response({
-                    'status': 'error',
-                    'message': 'Please enter a valid password'
-                }, status=status.HTTP_401_UNAUTHORIZED)
-                
-        except Users.DoesNotExist:
+                }
+            }, status=status.HTTP_200_OK)
+        else:
             return Response({
                 'status': 'error',
-                'message': 'Invalid credentials'
+                'message': 'Please enter a valid password'
             }, status=status.HTTP_401_UNAUTHORIZED)
 
         
 class AdminUsersView(APIValidateView):
+
     permission_classes = [AdminJWTAuthorization]
     
     def get(self, request):
@@ -161,9 +159,11 @@ class AdminUsersView(APIValidateView):
 
 
 class UpdateUserView(APIValidateView):
+
     permission_classes = [AdminJWTAuthorization]
 
     def put(self, request, userid):
+
         brand_name = request.brand_name
 
         user = Users.objects.using(brand_name).filter(userid=userid).first()
@@ -181,6 +181,7 @@ class UpdateUserView(APIValidateView):
 
 
 class ContactInfoView(APIValidateView):
+    
     permission_classes = [AdminJWTAuthorization]
 
     def get(self, request):
