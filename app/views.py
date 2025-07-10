@@ -1,3 +1,6 @@
+# Include a Django Packages
+from django.utils import timezone
+
 # Include DRF Packages
 from rest_framework.response import Response
 from rest_framework import status
@@ -89,6 +92,9 @@ class UserLoginView(APIValidateView):
             
             refresh['brand_name'] = brand_name
             refresh.access_token['brand_name'] = brand_name
+
+            user.last_login = timezone.now()
+            user.save(using=brand_name, update_fields=['last_login'])
             
             return Response({
                 'status': 'success',
@@ -279,7 +285,9 @@ class UserTasksListView(APIValidateView):
         
     
 class ContactUsView(APIValidateView):
-
+    """
+        Contact Us views for sending the admin
+    """
     permission_classes = [JWTAuthorization]
 
     def post(self, request):
@@ -287,6 +295,7 @@ class ContactUsView(APIValidateView):
         userid = request.user.userid
 
         brand_name = request.brand_name
+        
         serializer_data = ContactSerializer(data=request.data, context={'userid': userid , 'brand_name': brand_name})
         
         serializer_data.is_valid(raise_exception=True)

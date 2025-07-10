@@ -51,7 +51,6 @@ class UserRegistrationView(APIValidateView):
                 "message": "Your included brand not exits"
             }, status=status.HTTP_400_BAD_REQUEST)
                     
-
         brand_name = brand.brand_name
 
         serializer_data = BrandAdminSerializer(data=request.data, context={'brand_name': brand_name})

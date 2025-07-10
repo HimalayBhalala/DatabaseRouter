@@ -11,6 +11,30 @@ class BrandAdminSerializer(serializers.ModelSerializer):
         model = BrandAdmin
         fields = ('email', 'firstname', 'surname', 'password')
 
+    def validate_email(self, value):
+        """Strip whitespace from email"""
+        if value:
+            return value.strip()
+        return value
+
+    def validate_firstname(self, value):
+        """Strip whitespace from firstname"""
+        if value:
+            return value.strip()
+        return value
+
+    def validate_surname(self, value):
+        """Strip whitespace from surname"""
+        if value:
+            return value.strip()
+        return value
+
+    def validate_password(self, value):
+        """Strip whitespace from password"""
+        if value:
+            return value.strip()
+        return value
+
     def validate(self, attrs):
         brand_name = self.context.get('brand_name')
         email = attrs.get('email')
@@ -47,6 +71,30 @@ class AdminUserSerializer(serializers.ModelSerializer):
         model = Users
         exclude = ("password", "groups", "user_permissions", "is_staff")
 
+    def validate_email(self, value):
+        """Strip whitespace from email"""
+        if value:
+            return value.strip()
+        return value
+
+    def validate_firstname(self, value):
+        """Strip whitespace from firstname"""
+        if value:
+            return value.strip()
+        return value
+
+    def validate_surname(self, value):
+        """Strip whitespace from surname"""
+        if value:
+            return value.strip()
+        return value
+
+    def validate_brand_name(self, value):
+        """Strip whitespace from brand_name"""
+        if value:
+            return value.strip()
+        return value
+
     def update(self, instance, validated_data):
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -59,6 +107,18 @@ class AdminContactSerializer(serializers.ModelSerializer):
         model = ContactUs
         fields = "__all__"
         read_only_fields = ("userid", "firstname", "surname", "email")
+
+    def validate_description(self, value):
+        """Strip whitespace from description"""
+        if value:
+            return value.strip()
+        return value
+
+    def validate_approved_by(self, value):
+        """Strip whitespace from approved_by"""
+        if value:
+            return value.strip()
+        return value
 
     def update(self, instance, validated_data):
         brand_name = self.context.get('brand_name')

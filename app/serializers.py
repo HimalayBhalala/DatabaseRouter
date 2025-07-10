@@ -13,6 +13,30 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('userid', 'email', 'firstname', 'surname', 'password', 'brand_name', 'number_task', 'valid_user', 'created_at', 'updated_at')
         read_only_fields = ('userid', 'created_at', 'updated_at', 'brand_name')
 
+    def validate_email(self, value):
+        """Strip whitespace from email"""
+        if value:
+            return value.strip()
+        return value
+
+    def validate_firstname(self, value):
+        """Strip whitespace from firstname"""
+        if value:
+            return value.strip()
+        return value
+
+    def validate_surname(self, value):
+        """Strip whitespace from surname"""
+        if value:
+            return value.strip()
+        return value
+
+    def validate_password(self, value):
+        """Strip whitespace from password"""
+        if value:
+            return value.strip()
+        return value
+
     def validate(self, attrs):
         brand_name = self.context.get('brand_name')
         email = attrs.get('email')
@@ -57,6 +81,18 @@ class TaskSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ('id', 'created_at', 'updated_at')
 
+    def validate_saved_search(self, value):
+        """Strip whitespace from saved_search"""
+        if value:
+            return value.strip()
+        return value
+
+    def validate_postcode(self, value):
+        """Strip whitespace from postcode"""
+        if value:
+            return value.strip()
+        return value
+
     def create(self, validated_data):
         return Tasks.objects.create(**validated_data)
 
@@ -81,6 +117,17 @@ class ContactSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ("userid", "firstname", "surname", "email")
 
+    def validate_description(self, value):
+        """Strip whitespace from description"""
+        if value:
+            return value.strip()
+        return value
+
+    def validate_approved_by(self, value):
+        """Strip whitespace from approved_by"""
+        if value:
+            return value.strip()
+        return value
 
     def validate(self, attrs):
         userid = self.context.get('userid')
