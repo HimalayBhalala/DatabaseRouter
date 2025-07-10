@@ -33,8 +33,6 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
-# Custom user model
-AUTH_USER_MODEL = 'app.Users'
 
 # Application definition
 
@@ -56,7 +54,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-    'app.middleware.TenantMiddleware',  # Add tenant middleware
+    'app.middleware.TenantMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -149,8 +147,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-# AUTH_USER_MODEL = 'app.Users'
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
@@ -186,27 +182,6 @@ SIMPLE_JWT = {
     'LEEWAY': 0,
 }
 
-# Enable router debugging
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'loggers': {
-        'app': { 
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-    },
-}
 
-# Add this to see all database queries
-if DEBUG:
-    LOGGING['loggers']['django.db.backends'] = {
-        'level': 'DEBUG',
-        'handlers': ['console'],
-    }
+# Custom user model
+AUTH_USER_MODEL = 'app.Users'

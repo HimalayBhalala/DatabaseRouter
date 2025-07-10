@@ -146,12 +146,9 @@ class ContactSerializer(serializers.ModelSerializer):
             raise ValueError("Your account is deactivated so not able to send a contact us form.")
         
         contacts = ContactUs.objects.using(brand_name).filter(userid=userid)
-
-        print("Total Form count:", contacts.count())
         
         if contacts.exists():
             latest_contact = contacts.latest()
-            
             if latest_contact.status == '0':
                 raise ValueError("You have already submitted the Contact Us form, and it is currently pending approval by the admin. Please wait for it to be approved before submitting it again.")
         
@@ -160,7 +157,7 @@ class ContactSerializer(serializers.ModelSerializer):
         attrs['surname'] = user.surname
         attrs['email'] = user.email
         attrs['userid'] = userid
-
+        
         return attrs
     
     def create(self, validated_data):

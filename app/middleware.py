@@ -31,9 +31,10 @@ class TenantMiddleware(MiddlewareMixin):
         """
         brand_name = request.META.get('HTTP_X_BRAND_NAME')
         if brand_name:
+            brand_name = brand_name.lower()
             is_valid = self.is_valid_brand(brand_name)
             if is_valid:
-                return brand_name
+                return brand_name.strip()
 
         return 'default'
     
@@ -61,4 +62,4 @@ def get_current_brand():
     """
     Utility function to get current brand from thread-local storage
     """
-    return get_brand_context() 
+    return get_brand_context()

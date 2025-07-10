@@ -48,6 +48,11 @@ class AdminJWTAuthorization(permissions.BasePermission):
                 brand_name = decoded_token['brand_name']
                 try:
                     admin = BrandAdmin.objects.filter(id=admin_id, is_active=True, brand_name=brand_name).first()
+
+                    if not admin.is_active:
+                        raise ValueError("Your account is deactivated to not able to access Admin Panel.")
+                    
+                    request.brand_name = brand_name
                     return admin
                 except BrandAdmin.DoesNotExist:
                     return None

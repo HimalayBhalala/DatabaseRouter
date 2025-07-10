@@ -45,7 +45,7 @@ class JWTAuthorization(permissions.BasePermission):
                     user = Users.objects.using(brand_name).filter(userid=user_id, brand_name=brand_name).first()
                     
                     if not user.is_active:
-                        raise ValueError("Your account is deactivated so not able to send a contact us form.")
+                        raise ValueError("Your account is deactivated to not able to access it.")
                     request.brand_name = brand_name
 
                     return user

@@ -123,14 +123,14 @@ class AdminContactSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         brand_name = self.context.get('brand_name')
 
-        validated_data['approved_by'] = self.context.get('admin_name')
+        user = Users.objects.using(brand_name).filter(userid=instance.userid, brand_name=brand_name).first()
+        
+        validated_data['approved_by'] = self.context.get('admin_name') 
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save(using=self.context.get('brand_name'))
         
-        user = Users.objects.using(brand_name).filter(userid=instance.userid, brand_name=brand_name).first()
-
         if user:
             user.number_task = instance.request_for_task
             user.save(using=brand_name, update_fields=['number_task', 'updated_at'])

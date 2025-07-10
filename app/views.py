@@ -1,5 +1,6 @@
 # Include a Django Packages
 from django.utils import timezone
+from django.db import transaction
 
 # Include DRF Packages
 from rest_framework.response import Response
@@ -87,6 +88,12 @@ class UserLoginView(APIValidateView):
                 'message': 'User not found please register first.'
             }, status=status.HTTP_401_UNAUTHORIZED)
         
+        if user.is_active == 0:
+            return Response({
+                'status': 'error',
+                'message': 'Your account is deactivated to not able to access it.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
         if user.check_password(password):
             refresh = RefreshToken.for_user(user)
             
@@ -138,7 +145,7 @@ class CreateTaskAPIView(APIValidateView):
         if not user.valid_user:
             return Response({
                 "status":"error",
-                "message": "You have not able to create a Task because invalid user"
+                "message": "You cannot create a task because you are not validated for it."
             }, status=status.HTTP_400_BAD_REQUEST)
         
         tasks = Tasks.objects.using(branch_name).filter(userid=userid)
@@ -179,12 +186,11 @@ class UpdateTaskAPIView(APIValidateView):
 
         brand_name = request.brand_name
 
-        try:
-            task = Tasks.objects.using(brand_name).get(id=task_id, userid=request.user.userid)
-        except Tasks.DoesNotExist:
+        task = Tasks.objects.using(brand_name).filter(id=task_id, userid=request.user.userid).first()
+        if not task:
             return Response({
                 'status': 'error',
-                'message': 'Task not found or you do not have permission to update it'
+                'message': 'Task not found'
             }, status=status.HTTP_404_NOT_FOUND)
 
         serializer = TaskSerializer(task, data=request.data, partial=True)
@@ -215,12 +221,12 @@ class DeleteTaskAPIView(APIValidateView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         brand_name = request.brand_name
-        try:
-            task = Tasks.objects.using(brand_name).get(id=task_id, userid=request.user.userid)
-        except Tasks.DoesNotExist:
+
+        task = Tasks.objects.using(brand_name).filter(id=task_id, userid=request.user.userid).first()
+        if not task:
             return Response({
                 'status': 'error',
-                'message': 'Task not found or you do not have permission to delete it'
+                'message': 'Task not found'
             }, status=status.HTTP_404_NOT_FOUND)
 
         task.delete()
@@ -286,22 +292,36 @@ class UserTasksListView(APIValidateView):
     
 class ContactUsView(APIValidateView):
     """
-        Contact Us views for sending the admin
+    Contact Us views for sending the admin
     """
     permission_classes = [JWTAuthorization]
 
     def post(self, request):
- 
-        userid = request.user.userid
 
-        brand_name = request.brand_name
-        
-        serializer_data = ContactSerializer(data=request.data, context={'userid': userid , 'brand_name': brand_name})
+        userid = request.user.userid
+        brand_name = getattr(request, 'brand_name', None)
+
+        # Validate context variables
+        if not userid:
+            return Response({
+                'status': 'error',
+                'message': 'User ID not found'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate required fields
+        request_for_task = request.data.get('request_for_task')
+        if not request_for_task:
+            return Response({
+                'status': 'error',
+                'message': 'Please enter a number of tasks you want to create'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer_data = ContactSerializer(data=request.data, context={'userid': userid, 'brand_name': brand_name,'request': request})
         
         serializer_data.is_valid(raise_exception=True)
 
         serializer_data.save()
-
+        
         return Response({
             "status": "success",
             "message": "Contact Us form submitted successfully"
