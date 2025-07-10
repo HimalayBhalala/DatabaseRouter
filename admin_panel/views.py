@@ -101,13 +101,13 @@ class AdminLoginView(APIValidateView):
 
         if not admin:
             return Response({
-                "status": "error",
+                "status": "success",
                 "message": "You cannot access the admin panel because you are not an admin."
             }, status=status.HTTP_400_BAD_REQUEST)
         
         if not admin.is_active:
             return Response({
-                "status": "error",
+                "status": "success",
                 "message": "You do not have an active admin account, so you are not able to access it."
             }, status=status.HTTP_400_BAD_REQUEST)
         
@@ -140,7 +140,7 @@ class AdminLoginView(APIValidateView):
                 'message': 'Please enter a valid password'
             }, status=status.HTTP_401_UNAUTHORIZED)
 
-        
+
 class AdminUsersView(APIValidateView):
 
     permission_classes = [AdminJWTAuthorization]
@@ -171,7 +171,7 @@ class UpdateUserView(APIValidateView):
         
         serializer_data.is_valid(raise_exception=True)
 
-        serializer_data.save(using=brand_name)
+        serializer_data.save()
 
         return Response({
             "status":"success",
@@ -205,29 +205,55 @@ class ModifyContactInfo(APIValidateView):
 
         brand_name = request.brand_name
 
-        admin_name = request.admin_name
+        admin_id = request.admin.id
 
         contact = ContactUs.objects.using(brand_name).filter(id=contact_id).first()
 
         if not contact:
             return Response({
-                "status": "error",
+                "status": "success",
                 "message": "Contact record not found"
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        if contact.approved_by:
+        if contact.approved_by and contact.approved_by != admin_id:
             return Response({
                 "status": "success",
                 "message": "Already approved it so not able to modify it"                
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        serializer_data = AdminContactSerializer(contact, data=request.data, partial=True, context={'brand_name':brand_name, 'admin_name': admin_name})
+        serializer_data = AdminContactSerializer(contact, data=request.data, partial=True, context={'brand_name':brand_name, 'admin_id': admin_id})
 
         serializer_data.is_valid(raise_exception=True)
 
-        serializer_data.save(using=brand_name)
+        serializer_data.save()
 
         return Response({
             "status":"success",
             "data": serializer_data.data
         }, status=status.HTTP_200_OK)
+
+
+class AdminDeleteUserView(APIValidateView):
+
+    permission_classes = [AdminJWTAuthorization]
+
+    def delete(self, request, brand_id, userid):
+        
+        brand = Brand.objects.using('default').filter(brand_id=brand_id).first()
+
+        user = Users.objects.using(brand.brand_name).filter(userid=userid, brand_name=brand.brand_name).first()
+
+        if not user:
+            return Response({
+                "status": "success",
+                "message": "User not found"
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        Tasks.objects.using(brand.brand_name).filter(userid=userid).delete()
+
+        user.delete(using=brand.brand_name)
+
+        return Response({
+            "status": "success",
+            "message": "User deleted successfully"
+        }, status=status.HTTP_204_NO_CONTENT)

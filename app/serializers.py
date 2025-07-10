@@ -115,7 +115,7 @@ class ContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactUs
         fields = "__all__"
-        read_only_fields = ("userid", "firstname", "surname", "email")
+        read_only_fields = ("userid", "firstname", "surname", "email", "approved_by")
 
     def validate_description(self, value):
         """Strip whitespace from description"""

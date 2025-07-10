@@ -13,7 +13,8 @@ class TenantMiddleware(MiddlewareMixin):
         Detect brand from request and set database context
         """        
         if (request.path.startswith('/admin/') or 
-            request.path.startswith('/favicon.ico')):
+            request.path.startswith('/favicon.ico') or
+            request.path.startswith('/static/')):
             brand_name = 'default'
         else:
             brand_name = self.get_brand_from_request(request)

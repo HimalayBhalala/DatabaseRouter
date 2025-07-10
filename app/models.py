@@ -3,8 +3,6 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.utils import timezone
 
 
-    
-
 class Brand(models.Model):
     """Model to manage different brands/tenants"""
     brand_id = models.AutoField(primary_key=True)
@@ -25,6 +23,7 @@ class Brand(models.Model):
 
     class Meta:
         db_table = 'brands'
+        verbose_name_plural = 'brands'
 
 
     @property
@@ -46,6 +45,7 @@ class BrandAdmin(models.Model):
 
     class Meta:
         db_table = "brand_admin"
+        verbose_name_plural = 'brand_admin'
 
 
 class UserManager(BaseUserManager):
@@ -98,6 +98,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
 
     class Meta:
         db_table = 'users'
+        verbose_name_plural = 'users'
         unique_together = [['email', 'brand_name']]
 
 class Tasks(models.Model):
@@ -112,6 +113,7 @@ class Tasks(models.Model):
 
     class Meta:
         db_table = 'tasks'
+        verbose_name_plural = "tasks"
         unique_together = [['userid', 'saved_search']]
 
 
@@ -127,15 +129,21 @@ class ContactUs(models.Model):
     surname = models.CharField(max_length=50)
     email = models.CharField(max_length=50, unique=False)
     total_count = models.IntegerField(default=1)
-    request_for_task = models.IntegerField(blank=True, null=True) 
+    saved_search = models.CharField(max_length=200,unique=True)
+    min_price = models.FloatField(blank=True, null=True)
+    max_price = models.FloatField(blank=True, null=True)
+    request_for_task = models.IntegerField(default=1)
+    postcode = models.CharField(max_length=100, blank=True, null=True)
+    radius = models.IntegerField(blank=True, null=True)
     description = models.TextField(null=True, blank=True)
-    approved_by = models.CharField(max_length=50, null=True, blank=True)
+    approved_by = models.IntegerField(default=0,null=True, blank=True)
     status = models.CharField(max_length=2, choices=ADMIN_APPROVEL, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "contanct_us"
+        verbose_name_plural = "contanct_us"
         get_latest_by = 'created_at'
 
     def __str__(self):

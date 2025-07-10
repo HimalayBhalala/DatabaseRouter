@@ -138,9 +138,9 @@ class CreateTaskAPIView(APIValidateView):
         data = request.data.copy()
         userid = request.user.userid
 
-        branch_name = request.brand_name
+        brand_name = request.brand_name
 
-        user = Users.objects.using(branch_name).filter(userid=userid).first()
+        user = Users.objects.using(brand_name).filter(userid=userid).first()
 
         if not user.valid_user:
             return Response({
@@ -148,19 +148,20 @@ class CreateTaskAPIView(APIValidateView):
                 "message": "You cannot create a task because you are not validated for it."
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        tasks = Tasks.objects.using(branch_name).filter(userid=userid)
+        tasks = Tasks.objects.using(brand_name).filter(userid=userid)
 
         if tasks.count() >= user.number_task:
             return Response({
                 "status": "error",
                 "message": "You number of task reached so please contact us a admin for increase a task create limit."
             }, status=status.HTTP_400_BAD_REQUEST)
+        
         data['userid'] = userid
 
         serializer = TaskSerializer(data=data)
         
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer.save(using=brand_name)
         
         return Response({
             'status': 'success',
@@ -197,7 +198,7 @@ class UpdateTaskAPIView(APIValidateView):
         
         serializer.is_valid(raise_exception=True)
        
-        serializer.save()
+        serializer.save(using=brand_name)
 
         return Response({
             'status': 'success',

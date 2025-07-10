@@ -3,7 +3,7 @@ from .models import Brand, Users, Tasks, BrandAdmin, ContactUs
 
 @admin.register(Brand)
 class BrandDataAdmin(admin.ModelAdmin):
-    list_display = ('brand_name', 'database_name', 'is_active', 'created_at')
+    list_display = ('id', 'brand_name', 'database_name', 'is_active', 'created_at')
     list_filter = ('is_active', 'created_at')
     search_fields = ('brand_name', 'subdomain')
     readonly_fields = ('created_at', 'updated_at')
